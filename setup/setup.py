@@ -40,8 +40,13 @@
 # Set the user so they can use sudo to run systemctl.
 # 
 
-
 import os
+import sys
+
+# Include the parent directory in the sys.path to include xrootdrestart
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
 import stat
 import configparser
 import subprocess
