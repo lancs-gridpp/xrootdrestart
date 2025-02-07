@@ -1,2 +1,4 @@
 *.geany
 *.log
+Monitoring/alertmanager
+Monitoring/prometheus
