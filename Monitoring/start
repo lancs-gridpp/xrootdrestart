@@ -27,13 +27,16 @@ get_ip() {
   echo "$ip"
 }
 
-# Function to check if a directory exists, create if it does not
-create_directory() {
-  local dir=$1
-  if [[ ! -d "$dir" ]]; then
-    mkdir -p "$dir"
-    echo "Created directory: $dir"
-  fi
+# Create a podman volume if it doesn't exist
+create_volume() {
+    local volume_name="$1"
+    if ! podman volume inspect "$volume_name" &> /dev/null; then
+        echo "Volume '$volume_name' does not exist. Creating it..."
+        podman volume create "$volume_name"
+        echo "Volume '$volume_name' created."
+    else
+        echo "Volume '$volume_name' already exists."
+    fi
 }
 
 # Function to check if a container exists and is running
@@ -55,7 +58,7 @@ run_or_start_container() {
   fi
 }
 
-# Make sure the ports aren't already 
+# Make sure the ports aren't already in use
 check_port 9100 "Node Exporter"
 check_port 9093 "Alert Manager"
 check_port 9091 "Push Gateway"
@@ -64,21 +67,18 @@ check_port 3000 "Grafana"
 
 mdir=$(readlink -f "$(dirname "$0")")
 
-# Create required directories
-create_directory "$mdir/alertmanager"
-create_directory "$mdir/node_exporter/metrics"
-create_directory "$mdir/prometheus/data"
-create_directory "$mdir/push_gateway/data"
-
-# Set the data directories writable
-chmod -R 777 "$mdir/prometheus/data"
-chmod -R 777 "$mdir/push_gateway/data"
+# Create Volumes
+create_volume "node_exporter"
+create_volume "alert_manager"
+create_volume "push_gateway"
+create_volume "prometheus"
+create_volume "grafana"
 
 # Get the current IP address of the machine
 current_ip=$(get_ip)
 
 # Create alertmanager.yml if alertmanager directory exists
-alertmanager_config="$mdir/alertmanager/alertmanager.yml"
+alertmanager_config="alertmanager.yml"
 if [[ ! -f "$alertmanager_config" ]]; then
   cat > "$alertmanager_config" <<EOL
 global:
@@ -102,8 +102,8 @@ EOL
 fi
 
 # Create prometheus.yml and xrootdrestart.yml if prometheus directory exists
-prometheus_config="$mdir/prometheus/prometheus.yml"
-xrootdrestart_config="$mdir/prometheus/xrootdrestart.yml"
+prometheus_config="prometheus.yml"
+xrootdrestart_config="xrootdrestart.yml"
 
 if [[ ! -f "$prometheus_config" ]]; then
   cat > "$prometheus_config" <<EOL
@@ -151,7 +151,7 @@ run_or_start_container "node-exporter" \
   "podman run -d --name node-exporter \
   --restart=always \
   -p 9100:9100 \
-  -v $mdir/node_exporter/metrics:/var/lib/node_exporter/textfile_collector \
+  -v node_exporter:/var/lib/node_exporter/textfile_collector \
   quay.io/prometheus/node-exporter:latest \
   --collector.textfile.directory=/var/lib/node_exporter/textfile_collector"
 
@@ -159,7 +159,7 @@ run_or_start_container "alertmanager" \
   "podman run --name alertmanager -d \
   --restart=always \
   -p 9093:9093 \
-  -v $mdir/alertmanager:/etc/alertmanager \
+  -v ./$alertmanager_config:/etc/alertmanager/alertmanager.yml \
   quay.io/prometheus/alertmanager \
   --config.file=/etc/alertmanager/alertmanager.yml"
 
@@ -167,14 +167,14 @@ run_or_start_container "prometheus" \
   "podman run -d --name prometheus \
   --restart=always \
   -p 9090:9090 \
-  -v $mdir/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
-  -v $mdir/prometheus/data:/prometheus \
+  -v ./$prometheus_config:/etc/prometheus/prometheus.yml:ro \
+  -v prometheus:/prometheus \
   quay.io/prometheus/prometheus:latest"
 
 run_or_start_container "pushgateway" \
   "podman run -d --name=pushgateway \
   -p 9091:9091 \
-  -v $mdir/push_gateway/data:/data \
+  -v push_gateway:/data \
   quay.io/prometheus/pushgateway:latest"
 
 
@@ -182,4 +182,4 @@ run_or_start_container "grafana" \
   "podman run -d --name grafana \
   --restart=always \
   -p 3000:3000 \
-  grafana/grafana:latest"
+  grafana/grafana-oss:latest"
