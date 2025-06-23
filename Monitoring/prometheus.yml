@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["node-exporter:9100"]  # Accessing node-exporter running on the host
+
+#  - job_name: 'pushgateway' # Uncomment to to use the push gateway.
+#    static_configs:
+#      - targets: ['pushgateway:9091']
+
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+
+  - job_name: 'xrootdrestart'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["192.168.122.203:8000"]
+
+rule_files:
+  - "alert.rules"

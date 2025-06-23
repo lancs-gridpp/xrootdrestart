@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Check the virtual environment exists
+if [ ! -d ".venv" ]; then
+    echo "Python virtual environment not found. Creating a new one..."
+    python3 -m venv .venv
+
+    # Activate the virtual environment
+    source .venv/bin/activate    
+
+    # Install required packages
+    echo "Installing required packages from requirements.txt..."
+    pip install -r requirements.txt  
+    if [ $? -ne 0 ]; then
+        echo "Failed to install required packages. Please check requirements.txt."
+        exit 1
+    fi
+    echo "Required packages installed successfully."
+else
+    source .venv/bin/activate    
+fi
+
+# Run the python setup script
+echo "Running setup script (setup.py) ..."
+.venv/bin/python setup.py
+if [ $? -eq 0 ]; then
+    # Source the mk-service script to create the systemd service
+    source mk-service
+
+elif [ $? -ne 1 ]; then
+    echo "ERROR: setup.py script failed."
+    exit 1
+fi
+

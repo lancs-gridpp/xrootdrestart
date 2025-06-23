@@ -106,7 +106,7 @@ METRICS_METHOD   = PULL
 # Config Options
 #
 # alrt_url        - Alert-manager URL + port.
-# cluseter_id     - Value to use in the metrics cluster label.
+# cluster_id      - Value to use in the metrics cluster label.
 # cmsd_period     - Time in seconds between restarting the services on a server.
 # cmsd_svc        - CMSD service name.
 # cmsd_wait       - Time in seconds to wait after stopping cmsd before stopping xrootd.
@@ -118,7 +118,7 @@ METRICS_METHOD   = PULL
 # pkey_path       - Directory containing pkey_name file.
 # prom_url        - Prometheus URL + port.
 # pushgw_url      - URL + port of the gateway for pushing prometheus metrics.
-# servers         - A comman separated list of server host names.
+# servers         - A comma separated list of server host names.
 # service_timeout - Seconds to wait for a service to stop or start.
 # ssh_user        - User used by the ssh connection.
 # xrootd_svc      - XRootD service name.
@@ -209,7 +209,7 @@ class Config:
         self.priv_file = os.path.join(self.pkey_path, self.pkey_name)
         if self.pkey_name and not os.path.isfile( self.priv_file ):
             if self.__fail_no_key:
-                logger.INFO(f"The private key {self.pkey_name} doesn't exist")
+                logger.info(f"The private key {self.pkey_name} doesn't exist")
                 sys.exit(1)
 
 
@@ -568,6 +568,7 @@ class Server:
             if stdout.strip() == "active":
                 raise Server.RestartException(f"{service_name} failed to stop")
                 
+            logger.info(f"{service_name} stopped successfully")
             elapsed_time = time.time() - start_time
             logger.debug(f"Stoppping {service_name} took {elapsed_time}s")
                 
@@ -598,6 +599,7 @@ class Server:
             if stdout.strip() == "inactive":
                 raise Server.RestartException(f"{service_name} failed to start")
                 
+            logger.info(f"{service_name} started successfully")
             elapsed_time = time.time() - start_time
             logger.debug(f"Starting {service_name} took {elapsed_time}s")
                 
@@ -717,7 +719,7 @@ class Alerter:
         
 
     def create_metrics(self,labels,duration_buckets):
-        self.heartbeat_metric = Gauge("xrootdrestart_heartbeat", "Heartbeat of the xroot manager",labels)
+        self.heartbeat_metric = Gauge("xrootdrestart_heartbeat", f"xrootdrestart heartbeat generated every {HEARTBEAT_INTERVAL} seconds",labels)
         self.xrootdrestart_restart_active = Gauge("xrootdrestart_restart_active","State of the service restart on an XRootD node. 1=Restart Active, 0=Idle",labels)
         self.xrootdrestart_start_time = Gauge("xrootdrestart_start_time","Time when the xrootdrestart started restarting a server",labels)
         self.xrootdrestart_restart_alert_state = Gauge("xrootdrestart_restart_alert_state","state of the restart alert for a node. 1=Alert, 0=No Alert",labels)
@@ -1029,8 +1031,8 @@ def main():
     logger.info("===========================================================================")
 
     # Read in the config file.
-    logger.info("Reading config.")
     config = Config()
+    logger.info(f"Reading config file: {config.config_file}")
     config.load_config()
     # Adjust the logging level to the value in the config.
     logger.info(f"Setting log level to {config.log_level}")

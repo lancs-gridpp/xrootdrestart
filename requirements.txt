@@ -1,9 +1,8 @@
-paramiko==3.5.0
-prometheus_client==0.21.1
-requests==2.32.0
-requests-file==1.5.1
-requests-ftp==0.3.1
-requests-gssapi==1.2.3
-requests-oauthlib==1.3.1
-schedule==1.2.2
+paramiko
+prometheus_client
+requests
+requests-file
+requests-ftp
+requests-oauthlib
+schedule
 

@@ -1,0 +1,24 @@
+#!/bin/bash
+echo "Removing systemd service - xrootdrestart"
+systemctl stop xrootdrestart
+systemctl disable xrootdrestart
+rm /etc/systemd/system/xrootdrestart.service
+systemctl daemon-reload
+
+echo "Removing python virtual environment"
+rm -Rf .venv
+
+echo "Removing container"
+podman rm xrootdrestart
+
+echo "Removing container image"
+podman rmi xrootdrestart
+
+echo "Removing config and keys"
+rm -Rf /etc/xrootdrestart
+rm -Rf ~/.config/xrootdrestart
+
+echo "Clearing log file"
+echo "Logfile cleared" > /var/log/xrootdrestart.log
+
+

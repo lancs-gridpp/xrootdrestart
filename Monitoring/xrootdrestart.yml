@@ -1,0 +1,11 @@
+groups:
+  - name: XRootDRestartAlerts
+    rules:
+      - alert: XRootDMgrDown
+        expr: time() - python_script_heartbeat > 15
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "XRootDRestart is not running"
+          description: "The XRootDRestart has stopped emitting heartbeats for over 15 seconds."
