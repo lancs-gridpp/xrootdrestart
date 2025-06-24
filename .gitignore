@@ -1,4 +1,6 @@
 *.geany
 *.log
-Monitoring/alertmanager
-Monitoring/prometheus
+*.code-workspace
+__pycache__
+.venv
+Dockerfile

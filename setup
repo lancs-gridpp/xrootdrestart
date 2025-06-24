@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Check if a parameter is provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <systemd|container>"
+    exit 1
+fi
+
+if [[ "$1" != "systemd" && "$1" != "container" ]]; then
+    echo "Error: Invalid option '$1'."
+    echo "Usage: $0 <systemd|container>"
+    exit 1
+fi
+
+# Get the first parameter
+PARAM=$1
+
 # Check the virtual environment exists
 if [ ! -d ".venv" ]; then
     echo "Python virtual environment not found. Creating a new one..."
@@ -22,13 +37,5 @@ fi
 
 # Run the python setup script
 echo "Running setup script (setup.py) ..."
-.venv/bin/python setup.py
-if [ $? -eq 0 ]; then
-    # Source the mk-service script to create the systemd service
-    source mk-service
-
-elif [ $? -ne 1 ]; then
-    echo "ERROR: setup.py script failed."
-    exit 1
-fi
+.venv/bin/python setup.py $PARAM
 

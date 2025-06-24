@@ -1,9 +1,19 @@
 #!/bin/bash
+if [ "$EUID" -ne 0 ]; then
+    USERTXT="--user"
+    SYSTEMD_PATH="$HOME/.config/systemd/user/xrootdrestart.service"
+    CONFIG_DIR="$HOME/.config/xrootdrestart"
+else
+    USERTXT=""
+    SYSTEMD_PATH="/etc/systemd/system/xrootdrestart.service"
+    CONFIG_DIR="/etc/xrootdrestart"
+fi
+
 echo "Removing systemd service - xrootdrestart"
-systemctl stop xrootdrestart
-systemctl disable xrootdrestart
-rm /etc/systemd/system/xrootdrestart.service
-systemctl daemon-reload
+systemctl $USERTXT stop xrootdrestart
+systemctl $USERTXT disable xrootdrestart
+rm $SYSTEMD_PATH
+systemctl $USERTXT daemon-reload
 
 echo "Removing python virtual environment"
 rm -Rf .venv
@@ -15,8 +25,7 @@ echo "Removing container image"
 podman rmi xrootdrestart
 
 echo "Removing config and keys"
-rm -Rf /etc/xrootdrestart
-rm -Rf ~/.config/xrootdrestart
+rm -Rf $CONFIG_DIR
 
 echo "Clearing log file"
 echo "Logfile cleared" > /var/log/xrootdrestart.log

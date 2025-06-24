@@ -27,7 +27,7 @@
 #
 # On the computer where you run this script:
 # It checks for a config file.  If one isn't present, a default one is
-# created and the program exits to allow the user to end the config file.
+# created and the program exits to allow the user to edit the config file.
 # 
 # Once a config file can be read, it checks for ssh keys.  If keys cannot
 # be found, an ECDSA key pair is created.
@@ -57,6 +57,7 @@ import paramiko
 import xrootdrestart
 import logging
 import getpass
+import pwd
     
 EXIT_CONFIG_CREATED = 1
 ERR_CREATE_USER = 2
@@ -73,41 +74,10 @@ CONTAINER_TYPE = "podman"
 
 is_root = os.geteuid() == 0
 username = getpass.getuser()
+user_info = pwd.getpwnam(username)
+uid = user_info.pw_uid
+gid = user_info.pw_gid
 
-def create_virtualenv(venv_path):
-    """
-    Create a virtual environment if it doesn't exist.
-    """
-    try:
-        if not venv_path.exists():
-            logger.info(f"Creating virtual environment at {venv_path}...")
-            subprocess.run([sys.executable, '-m', 'venv', str(venv_path)], check=True)
-            logger.info("[SUCCESS] Virtual environment created.")
-        else:
-            logger.info(f"[SUCCESS] Virtual environment already exists at {venv_path}.")
-    except Exception as e:
-        logger.error(f"[ERROR] Failed to create virtual environment: {e}")
-        exit(ERR_FAILED_TO_CONFIGURE)
-
-def activate_virtualenv(venv_path):
-    """
-    Activate the virtual environment.
-    """
-    try:
-        activate_script = venv_path / 'bin' / 'activate'
-        if not activate_script.exists():
-            logger.error(f"[ERROR] Virtual environment activation script not found at {activate_script}.")
-            exit(ERR_FAILED_TO_CONFIGURE)
-        
-        # Activate the virtual environment
-        logger.info(f"Activating virtual environment at {venv_path}...")
-        activate_command = f"source {activate_script}"
-        subprocess.run(activate_command, shell=True, check=True)
-        logger.info("[SUCCESS] Virtual environment activated.")
-    except Exception as e:
-        logger.error(f"[ERROR] Failed to activate virtual environment: {e}")
-        exit(ERR_FAILED_TO_CONFIGURE)
-        
 def create_systemd_service(service_name):
     """
     Create a systemd service file for the xrootdrestart script.
@@ -115,7 +85,7 @@ def create_systemd_service(service_name):
     try:
         script_path = os.path.join(os.getcwd(), "xrootdrestart.py")
         python_bin = os.path.join(os.getcwd(), ".venv", "bin", "python")
-        systemd_path = Path("/etc/systemd/system") if is_root else Path.home() / ".config" / "systemd" / username
+        systemd_path = Path("/etc/systemd/system") if is_root else Path.home() / ".config" / "systemd" / "user"
         systemd_path.mkdir(parents=True, exist_ok=True)
         service_file = os.path.join(systemd_path,f"{service_name}.service")
 
@@ -182,6 +152,78 @@ WantedBy=multi-user.target
         logger.error(f"[ERROR] Failed to create systemd service: {e}")
         exit(ERR_FAILED_TO_CONFIGURE)
 
+
+def create_dockerfile_with_custom_user(username, uid, gid, output_path="Dockerfile"):
+    """
+    Create a Dockerfile with custom user specifications.
+    
+    Args:
+        username (str):     Username to create in the container
+        uid (int):          User ID for the container user
+        gid (int):          Group ID for the container user. Defaults to same as uid
+        output_path (str):  Path where the Dockerfile should be written
+    """
+
+    user_dir = "/home/" + username if uid != 0 else "/root"  
+
+    dockerfile_content = f"""FROM almalinux:9
+
+RUN dnf -y update && \\
+    dnf -y install python3 python3-pip openssh && \\
+    dnf clean all
+"""
+
+    if uid != 0:
+        # The container isnt running as root so create the user and setup user directories.
+        dockerfile_content += f"""
+# Create user with specified username and UID
+RUN groupadd -g {gid} {username} && \\
+    useradd -u {uid} -g {gid} -m -s /bin/bash {username}
+
+# Create .ssh directory for the user
+RUN mkdir -p {user_dir}/.ssh && \\
+    chmod 700 {user_dir}/.ssh && \\
+    chown {username}:{username} {user_dir}/.ssh
+
+RUN mkdir -p {user_dir}/.config/xrootdrestart && \\
+    chmod 700 {user_dir}/.config/xrootdrestart && \\
+    chown -R {username}:{username} {user_dir}/.config 
+"""
+
+# Install Python requirements
+    dockerfile_content += f"""
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+# Copy application file and set ownership
+COPY xrootdrestart.py {user_dir}/xrootdrestart.py
+RUN chown {username}:{username} {user_dir}/xrootdrestart.py
+"""
+    if uid != 0:
+        dockerfile_content += f"""
+        # It isn't running as root so switch to the user
+        USER {username}
+        WORKDIR /home/{username}
+"""
+
+    dockerfile_content += f"""
+ENTRYPOINT ["python3", "xrootdrestart.py"]
+
+EXPOSE 8000
+"""
+
+    try:
+        with open(output_path, 'w') as f:
+            f.write(dockerfile_content)
+        print(f"Dockerfile created successfully at: {output_path}")
+        print(f"User: {username} (UID: {uid}, GID: {gid})")
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to write Dockerfile: {e}")
+    
+    return dockerfile_content
+
+
 def create_container_image():
     """
     Create a container image using Dockerfile
@@ -213,7 +255,9 @@ def output_container_run_command(config_dir, pkey_path, log_file, metrics_port):
 
         run_command = f"""podman run -d \\
         --name xrootdrestart \\
-        -v {config_dir_abs}:/etc/xrootdrestart \\
+        --userns=keep-id \\
+        --restart=always \\
+        -v {config_dir_abs}:{config_dir_abs} \\
         {vol_pkey}-v {log_dir}:{log_dir} \\
         -p {metrics_port}:{metrics_port} \\
         xrootdrestart"""
@@ -521,12 +565,15 @@ def main():
 
     # Mode-specific setup
     if args.mode == 'systemd':
-        create_virtualenv(Path(VENV_PATH))    
-        activate_virtualenv(Path(VENV_PATH))
         create_systemd_service("xrootdrestart")
         logger.info("Systemd setup completed successfully.")
 
     elif args.mode == 'container':
+        # Create the Dockerfile with the current user
+        logger.info("Creating Dockerfile")
+        create_dockerfile_with_custom_user(username, uid, gid, "Dockerfile")
+        logger.info("Dockerfile created successfully.")
+        # Create the container image
         create_container_image()
         output_container_run_command(config_dir, pkey_path, Path(xrootdrestart.LOG_FILE),xrootdrestart.METRICS_PORT)
         logger.info("Container setup completed successfully.")

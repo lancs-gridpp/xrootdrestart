@@ -1030,6 +1030,7 @@ def main():
     logger.info("=============================  PROGRAM START ==============================")
     logger.info("===========================================================================")
 
+    logger.info(f"Running as uid:{os.geteuid()}")
     # Read in the config file.
     config = Config()
     logger.info(f"Reading config file: {config.config_file}")
