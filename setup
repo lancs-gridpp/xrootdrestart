@@ -23,6 +23,10 @@ if [ ! -d ".venv" ]; then
     # Activate the virtual environment
     source .venv/bin/activate    
 
+    # Make sure pip is upto date
+    echo "Upgrading pip..."
+    pip3 install --upgrade pip
+
     # Install required packages
     echo "Installing required packages from requirements.txt..."
     pip3 install -r requirements.txt  
