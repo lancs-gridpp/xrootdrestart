@@ -72,11 +72,13 @@ ERR_INVALID_MODE = 9
 VENV_PATH = ".venv"
 CONTAINER_TYPE = "podman"
 
-is_root = os.geteuid() == 0
-username = getpass.getuser()
-user_info = pwd.getpwnam(username)
-uid = user_info.pw_uid
-gid = user_info.pw_gid
+# Get the current username and user info
+uid = os.getuid()
+is_root = uid == 0
+userinfo = pwd.getpwuid(uid)
+username = userinfo.pw_name
+uid = userinfo.pw_uid 
+gid = userinfo.pw_gid
 
 def create_systemd_service(service_name):
     """
@@ -164,7 +166,7 @@ def create_dockerfile_with_custom_user(username, uid, gid, output_path="Dockerfi
         output_path (str):  Path where the Dockerfile should be written
     """
 
-    user_dir = "/home/" + username if uid != 0 else "/root"  
+    user_dir = "/home" + username if uid != 0 else "/root"  
 
     dockerfile_content = f"""FROM almalinux:9
 
@@ -201,9 +203,9 @@ RUN chown {username}:{username} {user_dir}/xrootdrestart.py
 """
     if uid != 0:
         dockerfile_content += f"""
-        # It isn't running as root so switch to the user
-        USER {username}
-        WORKDIR /home/{username}
+# It isn't running as root so switch to the user
+USER {username}
+WORKDIR /home/{username}
 """
 
     dockerfile_content += f"""
@@ -524,6 +526,7 @@ def main():
     logger.addHandler(console_handler)
 
     logger.info(f"Running setup in {args.mode} mode")
+    logger.info(f"Running as user: {username} (UID: {uid}, GID: {gid})")
 
     # Make sure the config directory and config file exist. 
     config_dir = Path(xrootdrestart.CONFIG_DIR)
