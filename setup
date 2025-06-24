@@ -2,13 +2,13 @@
 
 # Check if a parameter is provided
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <systemd|container>"
+    echo "Usage: $0 <service|container>"
     exit 1
 fi
 
-if [[ "$1" != "systemd" && "$1" != "container" ]]; then
+if [[ "$1" != "service" && "$1" != "container" ]]; then
     echo "Error: Invalid option '$1'."
-    echo "Usage: $0 <systemd|container>"
+    echo "Usage: $0 <service|container>"
     exit 1
 fi
 

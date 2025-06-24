@@ -503,9 +503,9 @@ def check_network_connection(url_key,url):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Setup xrootdrestart for systemd or container deployment')
-    parser.add_argument('mode', choices=['systemd', 'container'], 
-                       help='Deployment mode: systemd or container')
+    parser = argparse.ArgumentParser(description='Setup xrootdrestart for service or container deployment')
+    parser.add_argument('mode', choices=['service', 'container'], 
+                       help='Deployment mode: service or container')
     return parser.parse_args()
 
 
@@ -564,7 +564,7 @@ def main():
         check_network_connection('PUSH Gateway',config.pushgw_url)
 
     # Mode-specific setup
-    if args.mode == 'systemd':
+    if args.mode == 'service':
         create_systemd_service("xrootdrestart")
         logger.info("Systemd setup completed successfully.")
 
