@@ -174,7 +174,8 @@ class Config:
 
         try:
             general = self.parser['general']
-        except (NoOptionError, NoSectionError):
+        except Exception as e:
+            logger.error(f"Error reading config file {self.config_file}: {e}")
             general = {}  
             
         self.log_level = general.get('log_level',fallback=LOG_LEVEL)
