@@ -166,7 +166,7 @@ def create_dockerfile_with_custom_user(username, uid, gid, output_path="Dockerfi
         output_path (str):  Path where the Dockerfile should be written
     """
 
-    user_dir = "/home" + username if uid != 0 else "/root"  
+    user_dir = "/home/" + username if uid != 0 else "/root"  
 
     dockerfile_content = f"""FROM almalinux:9
 
@@ -205,7 +205,9 @@ RUN chown {username}:{username} {user_dir}/xrootdrestart.py
         dockerfile_content += f"""
 # It isn't running as root so switch to the user
 USER {username}
-WORKDIR /home/{username}
+"""
+    dockerfile_content += f"""
+WORKDIR {user_dir}
 """
 
     dockerfile_content += f"""
