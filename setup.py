@@ -251,18 +251,17 @@ def output_container_run_command(config_dir, pkey_path, log_file, metrics_port):
     try:
         config_dir_abs = os.path.abspath(config_dir)
         pkey_path_abs = os.path.abspath(pkey_path)
-        log_file_abs = os.path.abspath(log_file)
-        log_dir = os.path.dirname(log_file_abs)
+#        log_file_abs = os.path.abspath(log_file)
+#        log_dir = os.path.dirname(log_file_abs)
 
         vol_pkey = f"        -v {pkey_path_abs}:{pkey_path_abs} \\\n        " if pkey_path_abs != config_dir_abs else ""
-#        vol_pkey = f"-v {pkey_path_abs}:{pkey_path_abs} \\\n        "
 
         run_command = f"""podman run -d \\
         --name xrootdrestart \\
         --userns=keep-id \\
         --restart=always \\
         -v {config_dir_abs}:{config_dir_abs} \\
-        {vol_pkey}-v {log_dir}:{log_dir} \\
+        {vol_pkey}-v {log_file}:{log_file}:Z \\
         -p {metrics_port}:{metrics_port} \\
         xrootdrestart"""
         
@@ -272,8 +271,8 @@ def output_container_run_command(config_dir, pkey_path, log_file, metrics_port):
         logger.info("=" * 50)
         
         logger.info("To start the container, run the above command.")
-        logger.info("To stop the container: podman stop xrootdrestart-container")
-        logger.info("To remove the container: podman rm xrootdrestart-container")
+        logger.info("To stop the container: podman stop xrootdrestart")
+        logger.info("To remove the container: podman rm xrootdrestart")
     except Exception as e:
         logger.error(f"[ERROR] Failed to output container run command: {e}")
         exit(ERR_FAILED_TO_CONFIGURE)
