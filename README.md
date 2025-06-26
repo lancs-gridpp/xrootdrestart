@@ -6,26 +6,26 @@ XRootDRestart is a python script that periodically restarts cmsd and XRootD serv
 
 After connecting to a server, it stops cmsd, waits for a predefined length of time before restarting XRootD.  Finally cmsd is restarted and the ssh connection is closed.  If there are any problems restarting the services alerts are generated and sent using AlertManager.  Alerts can be disabled if not required.
 
-There are various metrics recorded which can then be processed by Prometheus.  The metrics are set to be 'pulled' by default but it can be configured to push the metrics to a push gateway. 
+There are various metrics recorded which can then be processed by Prometheus.  The metrics are set to be 'pulled' by default but it can be configured to push the metrics to a push gateway.  A monintoring stack is also included for testing which is run in docker containers. 
 
 It has been noted that occationally the XRootD process fail to terminate.  When this happens it is necessary to reboot the server. For this reason it is recommended that XRoodDRestart be run from a machine that does not run any XRootD services.
 
-A setup script can be used to configure XRootDRestart to run either as a service or in docker/podman container.  It also  connects to the XRootD servers and ensure they are configured correctly to allow XRootDRestart to connect and control the XRootD services.
+A setup script configures XRootDRestart to run:  as a systemd service; in a docker/podman container; from the command line.  It also ensures the XRootD servers are configured correctly to allow XRootDRestart to connect and control the XRootD services.
 
 
 ## Requirements
 
 The script was written using Python 3.12.7 so ensure you have a suitable version of **python** installed.  
 
-If you want to run XRoodDRestart in a container or run the Monitoring stack for testing, you will need either **docker** or **podman** installed. 
+You need **git** to clone the github repository.
 
-You will need **git** to clone the github repository.
+You need the following package: **python3-devel**
 
-You will need the following package: **python3-devel**
+If you want to run XRoodDRestart in a container or run the Monitoring stack for testing, you need either **docker** or **podman** installed. 
 
 The user that runs the setup script must have ssh access to all the xrootdservers.
 
-Whichever user you choose to run XRootDRestart much have write access to /var/log/xrootdrestart.log
+The user running XRootDRestart must have write access to /var/log/xrootdrestart.log
 
 ## Downloading
 
@@ -37,14 +37,54 @@ Clone the github respository:
 # cd xrootdrestart
 ```
 
-## Installing
+## Running From the Command Line
+
+Run setup
+
+```
+# ./setup
+Python virtual environment not found. Creating a new one...
+Upgrading pip...
+Requirement already satisfied: pip in ./.venv/lib/python3.12/site-packages (24.0)
+Collecting pip
+  Using cached pip-25.1.1-py3-none-any.whl.metadata (3.6 kB)
+Using cached pip-25.1.1-py3-none-any.whl (1.8 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 24.0
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-25.1.1
+Installing required packages from requirements.txt...
+Collecting paramiko (from -r requirements.txt (line 1))
+      :                       :
+      :                       :
+Required packages installed successfully.
+Activate the virtual environment using 'source .venv/bin/activate' before running 'python3 xrootdrestart.py'
+
+```
+
+Activate the virtual environment and run XRootDRestart
+
+```
+# source .venv/bin/activate
+# python3 xrootdrestart.py
+```
+
+
+
+## Installing as Either a Service or in a Docker Image
 
 ### Overview
-XRootDRestart can be run as a systemd service or using a podman/docker container.  The user used to run the setup script will dermine if a system or user service will be created.  If building a container image, the user that runs the setup script will be used by the contianer image. 
+XRootDRestart can be run as a systemd service or using a podman/docker container.  The user used to run the setup script dermines if a system or user service is created.  If building a container image, the user that runs the setup script is used by the contianer image. 
 
-The **setup** script will check and configure the system as necessary. Run the setup script from the project root directory as a user that has ssh access to the XRootD hosts.  The setup script will need to ssh to the XRootD machines to create a user and setup them up to allow ssh key authentication.
+The **setup** script checks and configure the system as necessary. The user running the setup script must have ssh access to the XRootD hosts as the setup script needs to the XRootD machines using ssh in order to create and configure a user to control the XRootD and CMSD services.
 
-The first time you run the setupscript it will create the XRootDRestart.conf with detault settings and terminate.  Edit the file to suit your system and then run the script again.
+The first time you run the setupscript it:
+* creates a python virtual environment and installed the required python packages.
+* creates the XRootDRestart.conf with detault settings and terminate.  
+
+Edit the file to suit your system and then run the script again.
 
 When you run the script again it will:
 
@@ -57,7 +97,7 @@ When you run the script again it will:
 	* Ensure the sudo rules exist to allow the ssh user to run systemctl.
 	* Copy the key to the server for ssh authentication
 	* Ensure an SSH can be enstablished as the ssh user with the key
-* If URLs are defined for the Alert Manager and PUSH Gageway, it will try opening an http connection to the defined URLs
+* If URLs are defined for the Alert Manager and PUSH Gageway, it tries opening an http connection to the defined URLs
 * Configure either the systemd xrootdrestart service or create a docker image.
 
 If any of these steps fail, the setup script will abort with a message indicating the problem.  Fix the problem and run the script again. You can run the script as many times as necessary.
@@ -96,7 +136,7 @@ INFO - Config file /etc/xrootdrestart/xrootdrestart.conf created at. Please edit
 
 The script has created a default config file. See [Configuration File](#configuration-file) for details of the available options.
 
-Edit the config file and set the options as required.  The basic ones you will need to set are: **servers**, **ssh_user**, **pkey_name**, **pkey_path**, **cmsd_svc** and **xrootd_svc**.
+Edit the config file and set the options as required.  The basic ones you need to set are: **servers**, **ssh_user**, **pkey_name**, **pkey_path**, **cmsd_svc** and **xrootd_svc**.
 
 **alert_url**, **cluster_id**, **metrics_port**, **metrics_method**, **prom_url** and **pushgw_url** are all used transfer metrics and generate alerts.  If you are not using these, blank the "*_url" options.
 
@@ -104,7 +144,7 @@ Once you have set the config file as you want it, re-run the setup script.
 
 ```
 # ./setup service
-Running setup script (setup.py) ...
+Running service setup ...
 /opt/xrootdrestart/.venv/lib64/python3.6/site-packages/paramiko/transport.py:32: CryptographyDeprecationWarning: Python 3.6 is no longer supported by the Python core team. Therefore, support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.6.
   from cryptography.hazmat.backends import default_backend
 INFO - Running setup in service mode
@@ -165,7 +205,7 @@ INFO - All checks completed successfully.
 
 ### Run XRootDRestart in a Docker Container
 
-Run setup in the xrootdrestart directory specifying the parameter **container**.  The user used to run the setup script will be used by the container image to run xrootdrestart.
+Run setup in the xrootdrestart directory specifying the parameter **container**.  The user used to run the setup script is used by the container image to run xrootdrestart.
 
 ```
 # ./setup container
@@ -185,7 +225,7 @@ Installing required packages from requirements.txt...
       :                       :
       :                       :
 Required packages installed successfully.
-Running setup script (setup.py) ...
+Running container setup ...
 /opt/xrootdrestart/.venv/lib64/python3.6/site-packages/paramiko/transport.py:32: CryptographyDeprecationWarning: Python 3.6 is no longer supported by the Python core team. Therefore, support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.6.
   from cryptography.hazmat.backends import default_backend
 INFO - Running setup in container mode
@@ -196,7 +236,7 @@ INFO - Config file /etc/xrootdrestart/xrootdrestart.conf created at. Please edit
 
 The script has created a default config file. See [Configuration File](#configuration-file) for details of the available options.
 
-Edit the config file and set the options as required.  The basic ones you will need to set are: **servers**, **ssh_user**, **pkey_name**, **pkey_path**, **cmsd_svc** and **xrootd_svc**.
+Edit the config file and set the options as required.  The basic ones you need to set are: **servers**, **ssh_user**, **pkey_name**, **pkey_path**, **cmsd_svc** and **xrootd_svc**.
 
 **alert_url**, **cluster_id**, **metrics_port**, **metrics_method**, **prom_url** and **pushgw_url** are all used transfer metrics and generate alerts.  If you are not using these, blank the "*_url" options.
 
@@ -204,7 +244,7 @@ Once you have set the config file as you want it, re-run the setup script.
 
 ```
 ]# ./setup container
-Running setup script (setup.py) ...
+Running container setup ...
 /opt/xrootdrestart/.venv/lib64/python3.6/site-packages/paramiko/transport.py:32: CryptographyDeprecationWarning: Python 3.6 is no longer supported by the Python core team. Therefore, support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.6.
   from cryptography.hazmat.backends import default_backend
 INFO - Running setup in container mode
@@ -455,7 +495,7 @@ The following metrics are created:
 
 ### Alerts 
 
-XRootDRestart by default will generate the following allerts
+XRootDRestart by default generates the following allerts
 
 | Alert | Definition |
 | --- | --- |
@@ -463,7 +503,7 @@ XRootDRestart by default will generate the following allerts
 | ALERT_XROOTDRESTART_RESTART_ERROR | Error restarting the XRootD/cmsd services |
 | ALERT_XROOTDRESTART_INSUFFICIENT_SERVERS | The number of active XRootD services has dropped to the minumum allowed. No more servers will be restarted. |
 
-Alerts will be sent to the Alertmanager address set in the config option **alert_url**
+Alerts are sent to the Alertmanager address set in the config option **alert_url**
 
 If you do not want alerts to be generated set **alert_url** to be blank.
 
@@ -501,11 +541,11 @@ This file must be writeable by the user running xrootdrestart.py.
 
 ## Running Test XRootD and CMSD Services
 
-*testing/xrootd-service/mk_xroot_service.sh* will create a dummy XRootD and cmsd services which can be used to test XRootDRestart without having to restart live servers. The services have a built in random delay of between 10 and 30 seconds when shutting down the service.
+*testing/xrootd-service/mk_xroot_service.sh* creates a dummy XRootD and cmsd services which can be used to test XRootDRestart without having to restart live servers. The services have a built in random delay of between 10 and 30 seconds when shutting down the service.
 
 ## Test Monitoring Stack
 
-A monitoring stack is included that will run in docker containers.  
+A monitoring stack is included that is run using docker containers.  
 
 The docker compose file (/Monitoring/docker-compose.yml) creates the following containers and volumes:
 
