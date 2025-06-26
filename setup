@@ -1,19 +1,46 @@
 #!/bin/bash
+#---------------------------------------------------------------------------------
+# Copyright (c) 2025 Lancaster University
+# Written by: Gerard Hand
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+#---------------------------------------------------------------------------------
+#
+# This script sets up the Python virtual environment and installs the required packages.
+# Usage:
+#   ./setup <service|container|command>
+# service: Sets up the systemd service to run the xrootdrestart script.
+# container: Sets up the Docker container to run the xrootdrestart script.
+# command: Just sets up the Python virtual environment and installs the required packages.
+#
 
 # Check if a parameter is provided
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <service|container>"
-    exit 1
-fi
-
-if [[ "$1" != "service" && "$1" != "container" ]]; then
+    PARAM="command"
+elif [[ "$1" != "service" && "$1" != "container" ]]; then
     echo "Error: Invalid option '$1'."
     echo "Usage: $0 <service|container>"
     exit 1
+else
+    PARAM=$1
 fi
-
-# Get the first parameter
-PARAM=$1
 
 # Check the virtual environment exists
 if [ ! -d ".venv" ]; then
@@ -35,11 +62,29 @@ if [ ! -d ".venv" ]; then
         exit 1
     fi
     echo "Required packages installed successfully."
+
+elif [[ "$PARAM" == "command" ]]; then
+    # The virtual environment already exist. Try installing the required packages again (just in case they have changed)
+    source .venv/bin/activate
+
+    echo "Installing required packages from requirements.txt..."
+    pip3 install -r requirements.txt  
+    if [ $? -ne 0 ]; then
+        echo "Failed to install required packages. Please check requirements.txt."
+        exit 1
+    fi
+    echo "Required packages installed successfully."
+
 else
+    # Activate the virtual environment
     source .venv/bin/activate    
+
 fi
 
-# Run the python setup script
-echo "Running setup script (setup.py) ..."
-.venv/bin/python setup.py $PARAM
-
+if [[ "$PARAM" == "command" ]]; then
+    echo "Activate the virtual environment using 'source .venv/bin/activate' before running 'python3 xrootdrestart.py'"
+else
+    # Run the python setup script to setup the service or container
+    echo "Running $PARAM setup ..."
+    python setup.py $PARAM
+fi
