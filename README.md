@@ -296,154 +296,8 @@ Copying config 623706a2d9 done   |
 Writing manifest to image destination
 STEP 2/9: RUN dnf -y update &&     dnf -y install python3 python3-pip openssh &&     dnf clean all
 AlmaLinux 9 - AppStream                         1.4 MB/s |  11 MB     00:07    
-AlmaLinux 9 - BaseOS                            6.7 MB/s | 9.5 MB     00:01    
-AlmaLinux 9 - Extras                             47 kB/s |  20 kB     00:00    
-Dependencies resolved.
-================================================================================
- Package                    Arch       Version                 Repository  Size
-================================================================================
-Upgrading:
- glibc                      x86_64     2.34-168.el9_6.19       baseos     1.9 M
- glibc-common               x86_64     2.34-168.el9_6.19       baseos     295 k
- glibc-minimal-langpack     x86_64     2.34-168.el9_6.19       baseos      22 k
-
-Transaction Summary
-================================================================================
-Upgrade  3 Packages
-
-Total download size: 2.2 M
-Downloading Packages:
-(1/3): glibc-minimal-langpack-2.34-168.el9_6.19 407 kB/s |  22 kB     00:00    
-(2/3): glibc-common-2.34-168.el9_6.19.x86_64.rp 2.5 MB/s | 295 kB     00:00    
-(3/3): glibc-2.34-168.el9_6.19.x86_64.rpm       6.0 MB/s | 1.9 MB     00:00    
---------------------------------------------------------------------------------
-Total                                           3.3 MB/s | 2.2 MB     00:00     
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                        1/1 
-  Upgrading        : glibc-common-2.34-168.el9_6.19.x86_64                  1/6 
-  Upgrading        : glibc-minimal-langpack-2.34-168.el9_6.19.x86_64        2/6 
-  Running scriptlet: glibc-2.34-168.el9_6.19.x86_64                         3/6 
-  Upgrading        : glibc-2.34-168.el9_6.19.x86_64                         3/6 
-  Running scriptlet: glibc-2.34-168.el9_6.19.x86_64                         3/6 
-  Cleanup          : glibc-2.34-168.el9_6.14.alma.1.x86_64                  4/6 
-  Cleanup          : glibc-minimal-langpack-2.34-168.el9_6.14.alma.1.x86_   5/6 
-  Cleanup          : glibc-common-2.34-168.el9_6.14.alma.1.x86_64           6/6 
-  Running scriptlet: glibc-common-2.34-168.el9_6.14.alma.1.x86_64           6/6 
-  Verifying        : glibc-2.34-168.el9_6.19.x86_64                         1/6 
-  Verifying        : glibc-2.34-168.el9_6.14.alma.1.x86_64                  2/6 
-  Verifying        : glibc-common-2.34-168.el9_6.19.x86_64                  3/6 
-  Verifying        : glibc-common-2.34-168.el9_6.14.alma.1.x86_64           4/6 
-  Verifying        : glibc-minimal-langpack-2.34-168.el9_6.19.x86_64        5/6 
-  Verifying        : glibc-minimal-langpack-2.34-168.el9_6.14.alma.1.x86_   6/6 
-
-Upgraded:
-  glibc-2.34-168.el9_6.19.x86_64                                                
-  glibc-common-2.34-168.el9_6.19.x86_64                                         
-  glibc-minimal-langpack-2.34-168.el9_6.19.x86_64                               
-
-Complete!
-Last metadata expiration check: 0:00:01 ago on Wed Jun 25 11:59:21 2025.
-Package python3-3.9.21-2.el9.x86_64 is already installed.
-Dependencies resolved.
-================================================================================
- Package                 Arch        Version               Repository      Size
-================================================================================
-Installing:
- openssh                 x86_64      8.7p1-45.el9          baseos         455 k
- python3-pip             noarch      21.3.1-1.el9          appstream      1.7 M
-Installing weak dependencies:
- libxcrypt-compat        x86_64      4.4.18-3.el9          appstream       88 k
- python3-setuptools      noarch      53.0.0-13.el9         baseos         838 k
-
-Transaction Summary
-================================================================================
-Install  4 Packages
-
-Total download size: 3.1 M
-Installed size: 15 M
-Downloading Packages:
-(1/4): libxcrypt-compat-4.4.18-3.el9.x86_64.rpm 1.1 MB/s |  88 kB     00:00    
-(2/4): openssh-8.7p1-45.el9.x86_64.rpm          1.4 MB/s | 455 kB     00:00    
-(3/4): python3-pip-21.3.1-1.el9.noarch.rpm      4.7 MB/s | 1.7 MB     00:00    
-(4/4): python3-setuptools-53.0.0-13.el9.noarch. 2.4 MB/s | 838 kB     00:00    
---------------------------------------------------------------------------------
-Total                                           2.8 MB/s | 3.1 MB     00:01     
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                        1/1 
-  Installing       : python3-setuptools-53.0.0-13.el9.noarch                1/4 
-  Installing       : libxcrypt-compat-4.4.18-3.el9.x86_64                   2/4 
-  Installing       : python3-pip-21.3.1-1.el9.noarch                        3/4 
-  Running scriptlet: openssh-8.7p1-45.el9.x86_64                            4/4 
-  Installing       : openssh-8.7p1-45.el9.x86_64                            4/4 
-  Running scriptlet: openssh-8.7p1-45.el9.x86_64                            4/4 
-  Verifying        : libxcrypt-compat-4.4.18-3.el9.x86_64                   1/4 
-  Verifying        : python3-pip-21.3.1-1.el9.noarch                        2/4 
-  Verifying        : openssh-8.7p1-45.el9.x86_64                            3/4 
-  Verifying        : python3-setuptools-53.0.0-13.el9.noarch                4/4 
-
-Installed:
-  libxcrypt-compat-4.4.18-3.el9.x86_64  openssh-8.7p1-45.el9.x86_64             
-  python3-pip-21.3.1-1.el9.noarch       python3-setuptools-53.0.0-13.el9.noarch 
-
-Complete!
-26 files removed
---> f36d7041718b
-STEP 3/9: COPY requirements.txt /tmp/requirements.txt
---> 93183872a3f0
-STEP 4/9: RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
-Collecting paramiko
-  Downloading paramiko-3.5.1-py3-none-any.whl (227 kB)
-Collecting prometheus_client
-  Downloading prometheus_client-0.22.1-py3-none-any.whl (58 kB)
-Collecting requests
-  Downloading requests-2.32.4-py3-none-any.whl (64 kB)
-Collecting requests-file
-  Downloading requests_file-2.1.0-py2.py3-none-any.whl (4.2 kB)
-Collecting requests-ftp
-  Downloading requests-ftp-0.3.1.tar.gz (7.8 kB)
-  Preparing metadata (setup.py): started
-  Preparing metadata (setup.py): finished with status 'done'
-Collecting requests-oauthlib
-  Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
-Collecting schedule
-  Downloading schedule-1.2.2-py3-none-any.whl (12 kB)
-Collecting pynacl>=1.5
-  Downloading PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl (856 kB)
-Collecting bcrypt>=3.2
-  Downloading bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64.whl (284 kB)
-Collecting cryptography>=3.3
-  Downloading cryptography-45.0.4-cp37-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-Collecting charset_normalizer<4,>=2
-  Downloading charset_normalizer-3.4.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (149 kB)
-Collecting urllib3<3,>=1.21.1
-  Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
-Collecting certifi>=2017.4.17
-  Downloading certifi-2025.6.15-py3-none-any.whl (157 kB)
-Collecting idna<4,>=2.5
-  Downloading idna-3.10-py3-none-any.whl (70 kB)
-Collecting oauthlib>=3.0.0
-  Downloading oauthlib-3.3.1-py3-none-any.whl (160 kB)
-Collecting cffi>=1.14
-  Downloading cffi-1.17.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (445 kB)
-Collecting pycparser
-  Downloading pycparser-2.22-py3-none-any.whl (117 kB)
-Using legacy 'setup.py install' for requests-ftp, since package 'wheel' is not installed.
-Installing collected packages: pycparser, urllib3, idna, charset-normalizer, cffi, certifi, requests, pynacl, oauthlib, cryptography, bcrypt, schedule, requests-oauthlib, requests-ftp, requests-file, prometheus-client, paramiko
-    Running setup.py install for requests-ftp: started
-    Running setup.py install for requests-ftp: finished with status 'done'
-Successfully installed bcrypt-4.3.0 certifi-2025.6.15 cffi-1.17.1 charset-normalizer-3.4.2 cryptography-45.0.4 idna-3.10 oauthlib-3.3.1 paramiko-3.5.1 prometheus-client-0.22.1 pycparser-2.22 pynacl-1.5.0 requests-2.32.4 requests-file-2.1.0 requests-ftp-0.3.1 requests-oauthlib-2.0.0 schedule-1.2.2 urllib3-2.5.0
-WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
---> 71d9c23405de
-STEP 5/9: COPY xrootdrestart.py /root/xrootdrestart.py
---> cfbf2f4fe2ad
+      :                       :
+      :                       :
 STEP 6/9: RUN chown root:root /root/xrootdrestart.py
 --> 0ff99f4a9aa7
 STEP 7/9: WORKDIR /root
@@ -468,8 +322,8 @@ INFO - podman run -d \
         xrootdrestart
 INFO - ==================================================
 INFO - To start the container, run the above command.
-INFO - To stop the container: podman stop xrootdrestart-container
-INFO - To remove the container: podman rm xrootdrestart-container
+INFO - To stop the container: podman stop xrootdrestart
+INFO - To remove the container: podman rm xrootdrestart
 INFO - Container setup completed successfully.
 INFO - All checks completed successfully.
 
